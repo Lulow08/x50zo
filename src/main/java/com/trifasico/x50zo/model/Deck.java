@@ -24,23 +24,17 @@ import java.util.List;
  *       when the draw pile runs out.</li>
  * </ul>
  *
- * @author Lulow
+ * @author Yostin Ramirez
+ * @author Lesly Zapata
+ * @author Joseph Terreros
  * @version 1.0
  * @see Card
  * @see EmptyDeckException
  */
 public class Deck {
 
-    // -------------------------------------------------------------------------
-    // Fields
-    // -------------------------------------------------------------------------
-
     /** Internal draw pile. Head = top of deck (next card to be drawn). */
     private final LinkedList<Card> cards;
-
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
 
     /**
      * Constructs a full, shuffled 52-card deck ready for dealing.
@@ -50,10 +44,6 @@ public class Deck {
         build();
         shuffle();
     }
-
-    // -------------------------------------------------------------------------
-    // Public API
-    // -------------------------------------------------------------------------
 
     /**
      * Draws the top card from the deck.
