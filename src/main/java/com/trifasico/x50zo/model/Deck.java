@@ -85,6 +85,21 @@ public class Deck {
     }
 
     /**
+     * Adds a single card to the <em>bottom</em> of the deck.
+     *
+     * <p>Used when a player is eliminated: their hand cards are sent to the
+     * back of the draw pile and become available for future draws.</p>
+     *
+     * @param card the card to add; must not be {@code null}
+     * @throws NullPointerException if {@code card} is {@code null}
+     */
+    public void addToBottom(Card card) {
+        if (card == null) throw new NullPointerException("card must not be null");
+        cards.addLast(card);
+    }
+
+
+    /**
      * Returns {@code true} if there are no cards left in the deck.
      *
      * @return {@code true} when empty
@@ -110,10 +125,6 @@ public class Deck {
     public void shuffle() {
         Collections.shuffle(cards);
     }
-
-    // -------------------------------------------------------------------------
-    // Private helpers
-    // -------------------------------------------------------------------------
 
     /**
      * Populates the deck with all 52 cards (13 ranks × 4 suits).
