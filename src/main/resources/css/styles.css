@@ -1,164 +1,154 @@
-/* ═══════════════════════════════════════════════════════════════
-   50zo — Main Stylesheet
-   Font: Lemon Days (loaded via SceneManager.loadFonts())
-   Palette:
-     Hot pink background  #F0538A
-     Card white           #FFFFFF
-     Card shadow          rgba(0,0,0,0.25)
-     Text dark            #1A1A2E
-     Text white           #FFFFFF
-     Accent black         #1A1A2E
-     Button pink light    #F9A8C9
-     Button black         #1A1A2E
-═══════════════════════════════════════════════════════════════ */
+/*=========================================================
+ ROOT
+=========================================================*/
 
-/* ── Root ─────────────────────────────────────────────────── */
-
-.root-pane {
-    -fx-background-color: #F0538A;
-    -fx-font-family: "Lemon Days";
+.root-pane{
+    -fx-background-color:#F0538A;
+    -fx-font-family:"Lemon Days";
 }
 
-/* ── Left panel ───────────────────────────────────────────── */
+/*=========================================================
+ COMMON LABELS
+=========================================================*/
 
-.left-panel {
-    -fx-padding: 20 16 20 20;
+.label{
+    -fx-font-family:"Lemon Days";
 }
 
-.label-turn-title {
-    -fx-text-fill: #1A1A2E;
-    -fx-font-family: "Lemon Days";
-    -fx-font-size: 28px;
-    -fx-font-weight: bold;
+/*=========================================================
+ TURN
+=========================================================*/
+
+.label-turn-title{
+    -fx-text-fill:#1A1A2E;
+    -fx-font-size:42px;
+    -fx-font-weight:bold;
 }
 
-.label-turn-player {
-    -fx-text-fill: #1A1A2E;
-    -fx-font-family: "Lemon Days";
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
+.turn-label-normal{
+    -fx-text-fill:white;
+    -fx-font-size:20px;
+    -fx-font-weight:bold;
 }
 
-.label-status {
-    -fx-text-fill: #1A1A2E;
-    -fx-font-family: "Lemon Days";
-    -fx-font-size: 10px;
-    -fx-opacity: 0.8;
+.turn-label-eliminated{
+    -fx-text-fill:#FF4444;
+    -fx-font-size:24px;
+    -fx-font-weight:bold;
 }
 
-/* ── Exit / Home buttons ──────────────────────────────────── */
-
-.btn-exit {
-    -fx-background-color: #F9A8C9;
-    -fx-text-fill: #1A1A2E;
-    -fx-font-family: "Lemon Days";
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
-    -fx-background-radius: 12px;
-    -fx-min-width: 42px;
-    -fx-min-height: 42px;
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 4, 0, 2, 2);
+.status-label{
+    -fx-text-fill:#AAAAAA;
+    -fx-font-size:20px;
 }
 
-.btn-exit:hover {
-    -fx-background-color: #f7c5d8;
+/*=========================================================
+ BOARD
+=========================================================*/
+
+.board-title{
+    -fx-text-fill:white;
+    -fx-font-size:24px;
+    -fx-font-weight:bold;
 }
 
-.btn-home {
-    -fx-background-color: #1A1A2E;
-    -fx-text-fill: #FFFFFF;
-    -fx-font-size: 16px;
-    -fx-background-radius: 12px;
-    -fx-min-width: 42px;
-    -fx-min-height: 42px;
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 4, 0, 2, 2);
+.table-sum{
+    -fx-text-fill:#00FFAA;
+    -fx-font-size:28px;
+    -fx-font-weight:bold;
 }
 
-.btn-home:hover {
-    -fx-background-color: #2d2d4e;
+.small-caption{
+    -fx-text-fill:#CCCCCC;
+    -fx-font-size:20px;
 }
 
-/* ── Table card ───────────────────────────────────────────── */
+/*=========================================================
+ HUMAN
+=========================================================*/
 
-.table-card-area {
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 10, 0, 3, 4);
+.human-name{
+    -fx-text-fill:white;
+    -fx-font-size:28px;
+    -fx-font-weight:bold;
 }
 
-.label-sum {
-    -fx-text-fill: #1A1A2E;
-    -fx-font-family: "Lemon Days";
-    -fx-font-size: 52px;
-    -fx-font-weight: bold;
+/*=========================================================
+ BUTTONS
+=========================================================*/
+
+.btn-exit{
+
+    -fx-background-color:#F9A8C9;
+    -fx-text-fill:#1A1A2E;
+
+    -fx-font-size:24px;
+    -fx-font-weight:bold;
+
+    -fx-background-radius:12;
+
+    -fx-min-width:42;
+    -fx-min-height:42;
+
+    -fx-cursor:hand;
 }
 
-/* ── Human hand ───────────────────────────────────────────── */
-
-.bottom-area {
-    -fx-padding: 0 0 24 0;
+.btn-exit:hover{
+    -fx-background-color:#F7C5D8;
 }
 
-.hand-box {
-    -fx-alignment: center;
+.btn-home{
+
+    -fx-background-color:#1A1A2E;
+    -fx-text-fill:white;
+
+    -fx-font-size:24px;
+
+    -fx-background-radius:12;
+
+    -fx-min-width:42;
+    -fx-min-height:42;
+
+    -fx-cursor:hand;
 }
 
-.card-slot {
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 6, 0, 2, 3);
-    -fx-transition: -fx-translate-y 120ms ease;
+.btn-home:hover{
+    -fx-background-color:#2D2D4E;
 }
 
-.card-slot:hover {
-    -fx-translate-y: -18px;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.40), 10, 0, 3, 6);
+/*=========================================================
+ MACHINE PLAYERS
+=========================================================*/
+
+.machine-box{
+    -fx-alignment:center;
+    -fx-spacing:6;
 }
 
-/* ── Human name label ─────────────────────────────────────── */
-
-.label-human-name {
-    -fx-text-fill: #1A1A2E;
-    -fx-font-family: "Lemon Days";
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-padding: 4 0 0 0;
+.machine-name{
+    -fx-text-fill:white;
+    -fx-font-size:22px;
+    -fx-font-weight:bold;
 }
 
-/* ── Deck pile ────────────────────────────────────────────── */
+/*=========================================================
+ CARDS
+=========================================================*/
 
-.deck-box {
-    -fx-cursor: default;
+.card-slot{
+    -fx-cursor:hand;
+    -fx-effect:dropshadow(gaussian, rgba(0,0,0,.35), 0, 0, 2, 4);
 }
 
-.label-deck-count {
-    -fx-text-fill: #1A1A2E;
-    -fx-font-family: "Lemon Days";
-    -fx-font-size: 11px;
-    -fx-alignment: center;
+.card-slot:hover{
+    -fx-translate-y:-18;
+    -fx-effect:dropshadow(gaussian, rgba(0,0,0,.55), 0, 0, 3, 6);
 }
 
-/* ── Machine hands (top area) ─────────────────────────────── */
-
-.machine-area {
-    -fx-padding: 20 20 0 0;
-    -fx-alignment: top-center;
+.deck-view{
+    -fx-effect:dropshadow(gaussian, rgba(0,0,0,.35), 0, 0, 2, 4);
 }
 
-.machine-box {
-    -fx-alignment: center;
-    -fx-spacing: 6;
-}
-
-.machine-name {
-    -fx-text-fill: #1A1A2E;
-    -fx-font-family: "Lemon Days";
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-    -fx-alignment: center;
-}
-
-/* ── Main stack ───────────────────────────────────────────── */
-
-.main-stack {
-    -fx-background-color: transparent;
+.top-card-view{
+    -fx-effect:dropshadow(gaussian, rgba(0,0,0,.45), 0, 0, 3, 5);
 }
