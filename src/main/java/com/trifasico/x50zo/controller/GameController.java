@@ -7,61 +7,35 @@ import com.trifasico.x50zo.model.TurnManager;
 import com.trifasico.x50zo.model.listeners.GameEventAdapter;
 import com.trifasico.x50zo.model.listeners.IGameEventListener;
 import com.trifasico.x50zo.model.players.IPlayer;
+import com.trifasico.x50zo.view.GameView;
 
-import javafx.animation.TranslateTransition;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
- * JavaFX controller for the main game screen ({@code game-view.fxml}).
+ * JavaFX controller orchestrating core loop events, state timing delays, and keyboard maps.
  *
- * <p>Acts as the boundary between the FXML view and the model layer
- * ({@link TurnManager}). No game logic lives here — the controller only
- * translates UI events into model calls and model callbacks into UI updates.</p>
- *
- * <h2>Interaction model</h2>
- * <ul>
- *   <li><strong>Mouse hover</strong> — card rises (CSS {@code translateY}).</li>
- *   <li><strong>Mouse click</strong> — immediately plays the hovered card.</li>
- *   <li><strong>Number keys 1–4</strong> — hover the matching card without
- *       playing; mouse re-hover always overrides keyboard hover.</li>
- *   <li><strong>Enter</strong> — plays the currently hovered card (if any).</li>
- *   <li><strong>Escape</strong> — clears keyboard hover.</li>
- * </ul>
- *
- * <h2>Inner class</h2>
- * <p>{@link CardHoverHandler} is a named static inner class that encapsulates
- * all mouse events for a single card slot, fulfilling the rubric requirement
- * for an inner class while keeping event logic co-located with its owner.</p>
+ * <p>Bridges user interaction streams to underlying data models. Implements strict state control
+ * parameters to block race-conditions on sequential execution steps during elimination windows.</p>
  *
  * @author Yostin Ramirez
  * @author Lesly Zapata
  * @author Joseph Terreros
- * @version 1.0
- * @see TurnManager
- * @see MachinePlayThread
+ * @version 1.2
  */
 public class GameController {
-
-    private static final String CARD_SPR = "/sprites/%s_%s.png";
-    private static final String BACK_SPR = "/sprites/back.png";
-    private static final double HOVER_Y   = -18.0;
-    private static final int    ANIM_MS   = 120;
 
     @FXML private Label     turnPlayerLabel;
     @FXML private Label     tableSumLabel;
@@ -71,30 +45,34 @@ public class GameController {
     @FXML private Label     humanNameLabel;
     @FXML private ImageView deckView;
     @FXML private Label     deckCountLabel;
-    @FXML private HBox      machineArea;
+    @FXML private HBox      topMachineArea;    // Handles Machine 1 and 2
+    @FXML private VBox      rightMachineArea;  // Isolated container for Machine 3
+    @FXML private Label     centerMessageLabel;
 
-    private TurnManager        turnManager;
-    private final List<StackPane> cardSlots = new ArrayList<>();
-    private int hoveredIndex = -1;
-    private boolean humanTurn = false;
+    private TurnManager turnManager;
+    private GameView    view;
+    private int         hoveredIndex = -1;
+    private boolean     humanTurn    = false;
+    private boolean     processingElimination = false;
 
-    private static final int    MACHINE_COUNT = 1;
+    private static final int    MACHINE_COUNT = 3;
     private static final String HUMAN_NAME    = "Player 1";
 
     @FXML
     public void initialize() {
+        this.view = new GameView(turnPlayerLabel, tableSumLabel, statusLabel, humanNameLabel, deckCountLabel,
+                topCardView, deckView, humanHandBox, topMachineArea, rightMachineArea, centerMessageLabel);
         startNewGame();
     }
 
     @FXML
     public void onExitClicked() {
-        Stage stage = (Stage) turnPlayerLabel.getScene().getWindow();
-        stage.close();
+        ((Stage) turnPlayerLabel.getScene().getWindow()).close();
     }
 
     @FXML
     public void onHomeClicked() {
-        // TODO: navigate to menu-view when implemented
+        // TODO: Main menu navigation route
     }
 
     @FXML
@@ -113,6 +91,7 @@ public class GameController {
     private void startNewGame() {
         hoveredIndex = -1;
         humanTurn    = false;
+        processingElimination = false;
 
         turnManager = new TurnManager(HUMAN_NAME, MACHINE_COUNT);
         turnManager.setEventListener(buildListener());
@@ -120,7 +99,7 @@ public class GameController {
         try {
             turnManager.startGame();
         } catch (EmptyDeckException e) {
-            showStatus("Deal failed: " + e.getMessage());
+            view.setStatus("Deal failed: " + e.getMessage());
         }
 
         renderAll();
@@ -143,7 +122,6 @@ public class GameController {
     }
 
     private void executePlay(int index) {
-        System.out.println("executePlay called, humanTurn=" + humanTurn + ", index=" + index);
         if (!humanTurn) return;
         humanTurn = false;
         setUiEnabled(false);
@@ -151,11 +129,11 @@ public class GameController {
         try {
             turnManager.humanPlayCard(index);
         } catch (InvalidPlayException e) {
-            showStatus("That card would exceed 50 — pick another.");
+            view.showCenterMessage("INVALID PLAY", "#FF4444", true);
             humanTurn = true;
             setUiEnabled(true);
         } catch (EmptyDeckException e) {
-            showStatus("Deck error: " + e.getMessage());
+            view.setStatus("Deck error: " + e.getMessage());
         }
 
         hoveredIndex = -1;
@@ -163,18 +141,15 @@ public class GameController {
 
     private void launchMachineTurn() {
         setUiEnabled(false);
-        MachinePlayThread thread = new MachinePlayThread(turnManager, e ->
-                Platform.runLater(() -> showStatus("Machine error: " + e.getMessage()))
-        );
-        thread.start();
+        new MachinePlayThread(turnManager, e ->
+                Platform.runLater(() -> view.setStatus("Machine error: " + e.getMessage()))
+        ).start();
     }
 
     private void setHovered(int index) {
         clearHoverVisuals();
         hoveredIndex = index;
-        if (index >= 0 && index < cardSlots.size()) {
-            cardSlots.get(index).setTranslateY(HOVER_Y);
-        }
+        view.setHoverEffect(index, true);
     }
 
     private void clearHover() {
@@ -183,13 +158,17 @@ public class GameController {
     }
 
     private void clearHoverVisuals() {
-        for (StackPane slot : cardSlots) {
-            slot.setTranslateY(0);
-        }
+        view.clearAllHoverEffects();
     }
 
     private void setUiEnabled(boolean enabled) {
         humanHandBox.setDisable(!enabled);
+    }
+
+    private List<IPlayer> getMachinePlayers() {
+        return turnManager.getActivePlayers().stream()
+                .filter(p -> !p.getName().equals(HUMAN_NAME))
+                .toList();
     }
 
     private IGameEventListener buildListener() {
@@ -197,17 +176,38 @@ public class GameController {
 
             @Override
             public void onTurnStarted(IPlayer player) {
+                if (processingElimination) {
+                    // Intercept and halt execution rhythm so elimination UI remains visible
+                    processingElimination = false;
+                    PauseTransition halt = new PauseTransition(Duration.seconds(2.0));
+                    halt.setOnFinished(ev -> setupTurnState(player));
+                    halt.play();
+                } else {
+                    setupTurnState(player);
+                }
+            }
+
+            private void setupTurnState(IPlayer player) {
                 boolean isHuman = player.getName().equals(HUMAN_NAME);
-                System.out.println("onTurnStarted: " + player.getName() + ", isHuman=" + isHuman);
-                turnPlayerLabel.setText(isHuman ? "YOU" : player.getName());
-                showStatus("");
+                view.setTurnStyleClass("turn-label-normal"); // Revert back to normal CSS classes
+                view.updateTurn(isHuman ? "YOUR TURN" : player.getName().toUpperCase());
+                view.setStatus("");
                 clearHover();
-                renderDeck();
+                view.updateDeck(turnManager.remainingDeckCards());
 
                 if (isHuman) {
-                    humanTurn = true;
-                    setUiEnabled(true);
-                    renderHumanHand();
+                    if (!hasValidPlays()) {
+                        view.showCenterMessage("YOU LOSE", "#FF4444", false);
+                        setUiEnabled(false);
+
+                        PauseTransition pause = new PauseTransition(Duration.seconds(2));
+                        pause.setOnFinished(ev -> turnManager.eliminateCurrentPlayer());
+                        pause.play();
+                    } else {
+                        humanTurn = true;
+                        setUiEnabled(true);
+                        renderHumanHand();
+                    }
                 } else {
                     humanTurn = false;
                     launchMachineTurn();
@@ -216,186 +216,81 @@ public class GameController {
 
             @Override
             public void onCardPlayed(IPlayer player, Card card, int newSum) {
-                animateCardPlay(card);
-                tableSumLabel.setText(String.valueOf(newSum));
+                view.animateCardPlay(card);
+                view.updateSum(newSum);
                 renderHumanHand();
-                renderMachineHands();
-                renderDeck();
+                view.renderMachineHands(getMachinePlayers());
+                view.updateDeck(turnManager.remainingDeckCards());
             }
 
             @Override
             public void onPlayerEliminated(IPlayer eliminated) {
-                showStatus(eliminated.getName() + " eliminated!");
-                renderMachineHands();
+                processingElimination = true;
+                view.updateTurn(eliminated.getName().toUpperCase() + " ELIMINATED!");
+                view.setTurnStyleClass("turn-label-eliminated"); // Trigger custom layout look via CSS
+                view.renderMachineHands(getMachinePlayers());    // Remove their cards instantly
             }
 
             @Override
             public void onGameOver(IPlayer winner) {
                 humanTurn = false;
                 setUiEnabled(false);
-                String msg = (winner != null)
-                        ? (winner.getName().equals(HUMAN_NAME) ? "You win!" : winner.getName() + " wins!")
-                        : "No survivors.";
-                showStatus(msg);
 
-                javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(Duration.seconds(2));
-                pause.setOnFinished(e -> {
-                    Stage stage = (Stage) turnPlayerLabel.getScene().getWindow();
-                    stage.close();
-                });
+                if (winner != null) {
+                    if (winner.getName().equals(HUMAN_NAME)) {
+                        view.showCenterMessage("YOU WIN", "#00FFAA", false);
+                    } else {
+                        view.showCenterMessage(winner.getName().toUpperCase() + " WON", "#FFD700", false);
+                    }
+                } else {
+                    view.showCenterMessage("DRAW", "#FFFFFF", false);
+                }
+
+                PauseTransition pause = new PauseTransition(Duration.seconds(3.5));
+                pause.setOnFinished(e -> ((Stage) turnPlayerLabel.getScene().getWindow()).close());
                 pause.play();
             }
 
             @Override
             public void onDeckReshuffled() {
-                showStatus("Deck reshuffled.");
-                renderDeck();
+                view.setStatus("Deck reshuffled.");
+                view.updateDeck(turnManager.remainingDeckCards());
             }
         };
     }
 
-    private void animateCardPlay(Card card) {
-        topCardView.setTranslateY(60);
-        topCardView.setOpacity(0);
-        topCardView.setImage(loadCardImage(card));
-
-        TranslateTransition tt = new TranslateTransition(Duration.millis(ANIM_MS), topCardView);
-        tt.setFromY(60);
-        tt.setToY(0);
-        tt.play();
-
-        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(Duration.millis(ANIM_MS), topCardView);
-        ft.setFromValue(0);
-        ft.setToValue(1);
-        ft.play();
-    }
-
     private void renderAll() {
         renderHumanHand();
-        renderMachineHands();
-        renderTopCard();
-        renderDeck();
-        tableSumLabel.setText(String.valueOf(turnManager.getTableSum()));
+        view.renderMachineHands(getMachinePlayers());
+        view.setTopCard(turnManager.getTopCard());
+        view.updateDeck(turnManager.remainingDeckCards());
+        view.setDeckImage();
+        view.updateSum(turnManager.getTableSum());
         humanNameLabel.setText(HUMAN_NAME);
     }
 
     private void renderHumanHand() {
-        humanHandBox.getChildren().clear();
-        cardSlots.clear();
-
-        List<Card> hand = turnManager.getHuman().getHand();
-        for (int i = 0; i < hand.size(); i++) {
-            Card card = hand.get(i);
-
-            ImageView cardSprite = new ImageView(loadCardImage(card));
-            cardSprite.setFitWidth(90);
-            cardSprite.setFitHeight(130);
-            cardSprite.setPreserveRatio(true);
-
-            StackPane slot = new StackPane(cardSprite);
-            slot.getStyleClass().add("card-slot");
-
-            slot.addEventHandler(MouseEvent.MOUSE_ENTERED,
-                    new CardHoverHandler(i, true,  this));
-            slot.addEventHandler(MouseEvent.MOUSE_EXITED,
-                    new CardHoverHandler(i, false, this));
-            slot.addEventHandler(MouseEvent.MOUSE_CLICKED,
-                    new CardHoverHandler(i, false, this, true));
-
-            cardSlots.add(slot);
-            humanHandBox.getChildren().add(slot);
-        }
+        view.renderHumanHand(turnManager.getHuman().getHand(),
+                index -> new CardHoverHandler(index, true, this),
+                index -> new CardHoverHandler(index, false, this),
+                index -> new CardHoverHandler(index, false, this, true)
+        );
     }
 
-    private void renderMachineHands() {
-        machineArea.getChildren().clear();
-
-        List<IPlayer> machines = turnManager.getActivePlayers().stream()
-                .filter(p -> !p.getName().equals(HUMAN_NAME))
-                .toList();
-
-        int count = machines.size();
-
-        for (int m = 0; m < count; m++) {
-            IPlayer player = machines.get(m);
-
-            Label nameLabel = new Label(player.getName().toUpperCase());
-            nameLabel.getStyleClass().add("machine-name");
-
-            HBox handBox = new HBox(4);
-            handBox.setAlignment(javafx.geometry.Pos.CENTER);
-
-            for (int i = 0; i < player.handSize(); i++) {
-                ImageView iv = new ImageView(loadImage(BACK_SPR));
-                iv.setFitWidth(38);
-                iv.setFitHeight(55);
-                iv.setPreserveRatio(true);
-                handBox.getChildren().add(iv);
+    private boolean hasValidPlays() {
+        int currentSum = turnManager.getTableSum();
+        for (Card card : turnManager.getHuman().getHand()) {
+            if (currentSum + card.getValue(currentSum) <= 50) {
+                return true;
             }
-
-            VBox machineBox = new VBox(4);
-            machineBox.getStyleClass().add("machine-box");
-            machineBox.setAlignment(javafx.geometry.Pos.CENTER);
-
-            if (count == 3 && m == 2) {
-                machineBox.setRotate(90);
-            }
-
-            machineBox.getChildren().addAll(nameLabel, handBox);
-            machineArea.getChildren().add(machineBox);
         }
-    }
-
-    private void renderTopCard() {
-        Card top = turnManager.getTopCard();
-        if (top != null) topCardView.setImage(loadCardImage(top));
-    }
-
-    private void renderDeck() {
-        deckCountLabel.setText(turnManager.remainingDeckCards() + "/52");
-        if (deckView.getImage() == null) {
-            deckView.setImage(loadImage(BACK_SPR));
-        }
-    }
-
-    private void showStatus(String msg) {
-        statusLabel.setText(msg);
-    }
-
-    private Image loadCardImage(Card card) {
-        String path = String.format(CARD_SPR,
-                card.suit(),
-                card.rank().name().toLowerCase());
-        return loadImage(path);
-    }
-
-    private Image loadImage(String path) {
-        try {
-            return new Image(Objects.requireNonNull(
-                    getClass().getResourceAsStream(path)));
-        } catch (NullPointerException e) {
-            return new Image(Objects.requireNonNull(
-                    getClass().getResourceAsStream(BACK_SPR)));
-        }
+        return false;
     }
 
     // =========================================================================
 
     /**
-     * Inner class that handles all mouse interaction events for a single card
-     * slot in the human player's hand.
-     *
-     * <p>A named static inner class is used instead of lambdas so that each
-     * of the three distinct event types (enter, exit, click) shares the same
-     * handler structure and remains readable without repetition. This also
-     * fulfills the rubric requirement for an inner class.</p>
-     *
-     * <p>Mouse interaction rules:</p>
-     * <ul>
-     *   <li>Enter → hover the card (raise it); overrides keyboard hover.</li>
-     *   <li>Exit  → un-hover this card only; keyboard hover is not restored.</li>
-     *   <li>Click → play the card immediately.</li>
-     * </ul>
+     * Inner event-handler tracking human interaction mechanics across individual rendering slots.
      */
     static class CardHoverHandler implements javafx.event.EventHandler<MouseEvent> {
 
@@ -415,11 +310,6 @@ public class GameController {
             this.controller = controller;
         }
 
-        /**
-         * Handles MOUSE_ENTERED, MOUSE_EXITED, and MOUSE_CLICKED on a card slot.
-         *
-         * @param event the mouse event from JavaFX
-         */
         @Override
         public void handle(MouseEvent event) {
             if (!controller.humanTurn) return;
