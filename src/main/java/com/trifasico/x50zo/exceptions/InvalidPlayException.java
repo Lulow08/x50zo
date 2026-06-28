@@ -40,8 +40,8 @@ public class InvalidPlayException extends Exception {
      */
     public InvalidPlayException(Card card, int currentSum) {
         super(String.format(
-                "Invalid play: card '%s' (value %d) would push the table sum from %d to %d, exceeding 50."
-                // card, card.getValue(currentSum), currentSum, currentSum + card.getValue(currentSum)
+                "Invalid play: card '%s' (value %d) would push the table sum from %d to %d, exceeding 50.",
+                card, card.getValue(currentSum), currentSum, currentSum + card.getValue(currentSum)
         ));
         this.card       = card;
         this.currentSum = currentSum;
