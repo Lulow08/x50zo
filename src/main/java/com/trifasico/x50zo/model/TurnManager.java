@@ -4,6 +4,7 @@ import com.trifasico.x50zo.exceptions.EmptyDeckException;
 import com.trifasico.x50zo.exceptions.InvalidPlayException;
 import com.trifasico.x50zo.exceptions.InvalidPlayerCountException;
 import com.trifasico.x50zo.exceptions.NoPlayableCardException;
+import com.trifasico.x50zo.model.listeners.IGameEventListener;
 import com.trifasico.x50zo.model.players.HumanPlayer;
 import com.trifasico.x50zo.model.players.IPlayer;
 import com.trifasico.x50zo.model.players.MachinePlayer;
@@ -20,18 +21,12 @@ import java.util.List;
  * to this class and calls its methods in response to user actions or background
  * thread events. No game logic lives in the controller.</p>
  *
- * <h2>Turn lifecycle</h2>
- * <ol>
- *   <li>Controller calls {@link #startGame()} once during setup.</li>
- *   <li>Controller queries {@link #currentPlayer()} to know whose turn it is.</li>
- *   <li>For a {@link HumanPlayer}: the UI waits for input, then calls
- *       {@link #humanPlayCard(int)}.</li>
- *   <li>For a {@link MachinePlayer}: {@code MachineThinkingTask} (a JavaFX
- *       {@code Task}) runs on a background thread, calls
- *       {@link #machinePlayCard()}, and posts the result to the UI thread.</li>
- *   <li>After every play, the manager draws a replacement card, checks for
- *       elimination, checks for a winner, and advances the turn.</li>
- * </ol>
+ * <p>Game events are broadcast to an optional {@link IGameEventListener}. Set
+ * one via {@link IGameEventListener} before calling
+ * {@link #startGame()}. All fire calls happen on whichever thread calls the
+ * turn methods, so the background tasks must use {@code Platform.runLater}
+ * before invoking {@link #machinePlayCard()}.</p>
+
  *
  * <h2>Player queue</h2>
  * <p>Active players are stored in an {@link ArrayDeque} used as a circular
@@ -59,6 +54,7 @@ public class TurnManager {
 
     private boolean gameOver;
     private IPlayer winner;
+    private IGameEventListener listener;
 
     /**
      * Constructs a {@code TurnManager} and validates the player count.
@@ -80,6 +76,7 @@ public class TurnManager {
         this.turnQueue = new ArrayDeque<>();
         this.gameOver  = false;
         this.winner    = null;
+        this.listener  = null;
 
         for (int i = 1; i <= machineCount; i++) {
             machines.add(new MachinePlayer("Machine " + i));
@@ -161,10 +158,9 @@ public class TurnManager {
             throws NoPlayableCardException, InvalidPlayException, EmptyDeckException {
 
         IPlayer current = currentPlayer();
-        if (!(current instanceof MachinePlayer)) {
+        if (!(current instanceof MachinePlayer machine)) {
             throw new IllegalStateException("Current player is not a MachinePlayer.");
         }
-        MachinePlayer machine = (MachinePlayer) current;
 
         GameState state = buildGameState();
         Card played = machine.decideAndPlay(state);
@@ -284,6 +280,10 @@ public class TurnManager {
         } else if (turnQueue.isEmpty()) {
             gameOver = true;
         }
+    }
+
+    public void setEventListener(IGameEventListener listener) {
+        this.listener = listener;
     }
 
     private GameState buildGameState() {
