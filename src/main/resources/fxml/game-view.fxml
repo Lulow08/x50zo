@@ -7,100 +7,152 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.Region?>
 
 <BorderPane
         xmlns="http://javafx.com/javafx/17"
         xmlns:fx="http://javafx.com/fxml/1"
         fx:controller="com.trifasico.x50zo.controller.GameController"
-        prefWidth="860" prefHeight="600"
+        prefWidth="800"
+        prefHeight="600"
         styleClass="root-pane"
         focusTraversable="true">
 
-    <center>
-        <StackPane styleClass="main-stack">
+    <!-- ================= TOP ================= -->
 
-            <!-- ── MACHINE HANDS (top area, absolutely positioned via VBox) ── -->
-            <VBox alignment="TOP_CENTER" pickOnBounds="false">
-                <HBox fx:id="machineArea"
-                      alignment="TOP_CENTER"
-                      spacing="40"
-                      styleClass="machine-area"/>
-            </VBox>
+    <top>
+        <HBox fx:id="topMachineArea"
+              alignment="CENTER"
+              spacing="40"
+              prefHeight="120"/>
+    </top>
 
-            <!-- ── LEFT PANEL: controls + turn info ── -->
-            <VBox pickOnBounds="false">
-                <VBox styleClass="left-panel" spacing="10">
+    <!-- ================= LEFT ================= -->
 
-                    <!-- Exit / Home buttons -->
-                    <HBox spacing="8" alignment="CENTER_LEFT">
-                        <Button styleClass="btn-exit"
-                                text="✕"
-                                onAction="#onExitClicked"/>
-                        <Button styleClass="btn-home"
-                                text="⌂"
-                                onAction="#onHomeClicked"/>
-                    </HBox>
+    <left>
+        <VBox alignment="CENTER_LEFT"
+              spacing="2"
+              prefWidth="220"
+              style="-fx-padding: 0 0 0 16;">
 
-                    <!-- Turn label -->
-                    <Label text="TURN" styleClass="label-turn-title"/>
-                    <Label fx:id="turnPlayerLabel"
-                           text="—"
-                           styleClass="label-turn-player"/>
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <Button text="✕"
+                        styleClass="btn-exit"
+                        onAction="#onExitClicked"/>
 
-                    <!-- Status (eliminated, reshuffle notices) -->
-                    <Label fx:id="statusLabel"
-                           styleClass="label-status"
-                           wrapText="true"
-                           maxWidth="150"/>
-                </VBox>
-            </VBox>
-
-            <!-- ── CENTER: top card + sum ── -->
-            <HBox alignment="CENTER" spacing="24" pickOnBounds="false">
-                <StackPane styleClass="table-card-area">
-                    <ImageView fx:id="topCardView"
-                               fitWidth="100" fitHeight="145"
-                               preserveRatio="true"/>
-                </StackPane>
-                <Label fx:id="tableSumLabel"
-                       text="0"
-                       styleClass="label-sum"/>
+                <Button text="⌂"
+                        styleClass="btn-home"
+                        onAction="#onHomeClicked"/>
             </HBox>
 
-            <!-- ── BOTTOM: human hand + name + deck ── -->
-            <VBox alignment="BOTTOM_CENTER" pickOnBounds="false">
-                <VBox styleClass="bottom-area" alignment="CENTER" spacing="8">
+            <Label text="TURN"
+                   styleClass="label-turn-title"/>
 
-                    <!-- Hand row: cards + deck -->
-                    <HBox alignment="CENTER" spacing="16">
+            <Label fx:id="turnPlayerLabel"
+                   text="YOUR TURN"
+                   styleClass="turn-label-normal"/>
 
-                        <HBox fx:id="humanHandBox"
-                              alignment="CENTER"
-                              spacing="10"
-                              styleClass="hand-box"/>
+            <Label fx:id="statusLabel"
+                   styleClass="status-label"/>
 
-                        <!-- Deck pile -->
-                        <VBox alignment="CENTER" spacing="4" styleClass="deck-box">
-                            <ImageView fx:id="deckView"
-                                       fitWidth="70" fitHeight="100"
-                                       preserveRatio="true"/>
-                            <Label fx:id="deckCountLabel"
-                                   text="52/52"
-                                   styleClass="label-deck-count"/>
-                        </VBox>
+        </VBox>
+    </left>
 
-                    </HBox>
+    <!-- ================= CENTER ================= -->
 
-                    <!-- Human name -->
-                    <Label fx:id="humanNameLabel"
-                           text="PLAYER 1"
-                           styleClass="label-human-name"/>
+    <center>
 
-                </VBox>
+        <StackPane>
+
+            <VBox alignment="CENTER"
+                  spacing="16">
+
+                <HBox alignment="CENTER"
+                      spacing="10">
+
+                    <Label text="TABLE SUM:"
+                           styleClass="board-title"/>
+
+                    <Label fx:id="tableSumLabel"
+                           text="0"
+                           styleClass="table-sum"/>
+
+                </HBox>
+
+                <HBox alignment="CENTER"
+                      spacing="30">
+
+                    <VBox alignment="CENTER"
+                          spacing="5">
+
+                        <ImageView fx:id="deckView"
+                                   styleClass="deck-view"
+                                   fitWidth="90"
+                                   fitHeight="130"
+                                   preserveRatio="true"/>
+
+                        <Label fx:id="deckCountLabel"
+                               text="52/52"
+                               styleClass="small-caption"/>
+
+                    </VBox>
+
+                    <VBox alignment="CENTER"
+                          spacing="5">
+
+                        <ImageView fx:id="topCardView"
+                                   styleClass="top-card-view"
+                                   fitWidth="90"
+                                   fitHeight="130"
+                                   preserveRatio="true"/>
+
+                        <Label text="TOP CARD"
+                               styleClass="small-caption"/>
+
+                    </VBox>
+
+                </HBox>
+
             </VBox>
 
+            <Label fx:id="centerMessageLabel"
+                   opacity="0.0"
+                   mouseTransparent="true"/>
+
         </StackPane>
+
     </center>
+
+    <!-- ================= RIGHT ================= -->
+
+    <right>
+
+        <VBox fx:id="rightMachineArea"
+              alignment="CENTER"
+              prefWidth="180"
+              style="-fx-padding: 0 16 0 0;"/>
+
+    </right>
+
+    <!-- ================= BOTTOM ================= -->
+
+    <bottom>
+
+        <VBox alignment="CENTER"
+              spacing="10"
+              prefHeight="180"
+              style="-fx-padding: 0 0 20 0;">
+
+            <Label fx:id="humanNameLabel"
+                   text="PLAYER 1"
+                   styleClass="human-name"/>
+
+            <HBox fx:id="humanHandBox"
+                  alignment="CENTER"
+                  spacing="16"
+                  prefHeight="140"/>
+
+        </VBox>
+
+    </bottom>
 
 </BorderPane>
