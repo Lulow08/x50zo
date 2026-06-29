@@ -11,6 +11,11 @@ import static org.junit.jupiter.api.Assertions.*;
  *  - ACE edge cases: prefers 10 when it fits, falls back to 1 otherwise
  *  - Card.isPlayable correctly delegating to Rank
  *  - Card.getValue correctly delegating to Rank
+ *
+ *   * @author Yostin Ramirez
+ *  * @author Lesly Zapata
+ *  * @author Joseph Terreros
+ *  * @version 1.0
  */
 class CardTest {
 

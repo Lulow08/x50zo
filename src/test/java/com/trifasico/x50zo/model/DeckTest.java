@@ -17,6 +17,11 @@ import static org.junit.jupiter.api.Assertions.*;
  *  - draw(): decrements the deck and throws EmptyDeckException when empty
  *  - addToBottom(): the card ends up last in draw order
  *  - reshuffleFromPile(): loads the given cards and makes them drawable
+ *
+ *   * @author Yostin Ramirez
+ *  * @author Lesly Zapata
+ *  * @author Joseph Terreros
+ *  * @version 1.0
  */
 class DeckTest {
 
