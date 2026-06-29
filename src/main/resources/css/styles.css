@@ -20,7 +20,7 @@
 =========================================================*/
 
 .label-turn-title{
-    -fx-text-fill:#1A1A2E;
+    -fx-text-fill:#000000;
     -fx-font-size:42px;
     -fx-font-weight:bold;
 }
@@ -29,17 +29,20 @@
     -fx-text-fill:white;
     -fx-font-size:20px;
     -fx-font-weight:bold;
+    -fx-effect: dropshadow(one-pass-box, black, 10, 1.0, 0, 0);
 }
 
 .turn-label-eliminated{
     -fx-text-fill:#FF4444;
-    -fx-font-size:24px;
+    -fx-font-size:14px;
     -fx-font-weight:bold;
+    -fx-effect: dropshadow(one-pass-box, black, 10, 1.0, 0, 0);
 }
 
 .status-label{
     -fx-text-fill:#AAAAAA;
     -fx-font-size:20px;
+    -fx-effect: dropshadow(one-pass-box, black, 10, 1.0, 0, 0);
 }
 
 /*=========================================================
@@ -50,17 +53,20 @@
     -fx-text-fill:white;
     -fx-font-size:24px;
     -fx-font-weight:bold;
+    -fx-effect: dropshadow(one-pass-box, black, 10, 1.0, 0, 0);
 }
 
 .table-sum{
     -fx-text-fill:#00FFAA;
     -fx-font-size:28px;
     -fx-font-weight:bold;
+    -fx-effect: dropshadow(one-pass-box, black, 10, 1.0, 0, 0);
 }
 
 .small-caption{
     -fx-text-fill:#CCCCCC;
     -fx-font-size:20px;
+    -fx-effect: dropshadow(one-pass-box, black, 10, 1.0, 0, 0);
 }
 
 /*=========================================================
@@ -71,6 +77,7 @@
     -fx-text-fill:white;
     -fx-font-size:28px;
     -fx-font-weight:bold;
+    -fx-effect: dropshadow(one-pass-box, black, 10, 1.0, 0, 0);
 }
 
 /*=========================================================
@@ -129,6 +136,7 @@
     -fx-text-fill:white;
     -fx-font-size:22px;
     -fx-font-weight:bold;
+    -fx-effect: dropshadow(one-pass-box, black, 10, 1.0, 0, 0);
 }
 
 /*=========================================================
@@ -151,4 +159,77 @@
 
 .top-card-view{
     -fx-effect:dropshadow(gaussian, rgba(0,0,0,.45), 0, 0, 3, 5);
+}
+
+/*=========================================================
+ MENU ELEMENTS
+=========================================================*/
+
+.menu-title {
+    -fx-text-fill: white;
+    -fx-font-size: 90px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(one-pass-box, black, 20, 1.0, 0, 0);
+}
+
+.menu-subtitle {
+    -fx-text-fill: white;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(one-pass-box, black, 10, 1.0, 0, 0);
+    -fx-padding: 10 0 0 -120;
+}
+
+.btn-menu-arrow {
+    -fx-background-color: black;
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 15;
+    -fx-min-width: 30;
+    -fx-min-height: 160;
+    -fx-cursor: hand;
+}
+
+.btn-menu-arrow:hover {
+    -fx-background-color: #333333;
+}
+
+.btn-menu-arrow:disabled {
+    -fx-opacity: 0.5;
+    -fx-cursor: default;
+}
+
+.btn-menu-play {
+    -fx-background-color: #FF85B3;
+    -fx-text-fill: black;
+    -fx-font-size: 40px;
+    -fx-background-radius: 15;
+    -fx-border-color: black;
+    -fx-border-width: 5;
+    -fx-border-radius: 12;
+    -fx-min-width: 90;
+    -fx-min-height: 80;
+    -fx-cursor: hand;
+}
+
+.btn-menu-play:hover {
+    -fx-background-color: #FFA3C7;
+}
+
+.btn-menu-exit {
+    -fx-background-color: black;
+    -fx-text-fill: white;
+    -fx-font-size: 36px;
+    -fx-background-radius: 15;
+    -fx-border-color: black;
+    -fx-border-width: 5;
+    -fx-border-radius: 12;
+    -fx-min-width: 90;
+    -fx-min-height: 80;
+    -fx-cursor: hand;
+}
+
+.btn-menu-exit:hover {
+    -fx-background-color: #333333;
 }
