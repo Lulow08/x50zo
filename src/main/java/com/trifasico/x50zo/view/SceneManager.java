@@ -1,5 +1,6 @@
 package com.trifasico.x50zo.view;
 
+import com.trifasico.x50zo.Main;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -7,80 +8,80 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Objects;
 
 /**
- * Singleton that owns the primary {@link Stage} and handles scene transitions.
- *
- * <p>All FXML files are expected under {@code /fxml/} on the classpath.
- * The stylesheet at {@code /css/styles.css} and the custom font under
- * {@code /fonts/} are loaded once and applied to every scene.</p>
- *
- * @author Yostin Ramirez
- * @author Lesly Zapata
- * @author Joseph Terreros
- * @version 1.0
+ * Singleton class responsible for managing the primary JavaFX {@link Stage}
+ * and handling scene transitions throughout the application.
  */
 public final class SceneManager {
 
     private static SceneManager instance;
     private Stage mainStage;
-    private SceneManager() {}
+
+    private SceneManager() {
+    }
 
     /**
-     * Returns the singleton instance, creating it on first call.
+     * Retrieves the singleton instance of the SceneManager.
      *
-     * @return the {@code SceneManager} instance
+     * @return The active {@link SceneManager} instance.
      */
     public static SceneManager getInstance() {
-        if (instance == null) instance = new SceneManager();
+        if (instance == null) {
+            instance = new SceneManager();
+        }
         return instance;
     }
 
     /**
-     * Sets the primary stage. Must be called once in {@code AppInitializer}
-     * before any scene switch.
+     * Assigns the primary stage for the application.
      *
-     * @param stage the JavaFX primary stage
+     * @param stage The primary JavaFX {@link Stage}.
      */
-    public void setMainStage(Stage stage) { this.mainStage = stage; }
-
-    /**
-     * Loads the custom font from the classpath so JavaFX CSS can reference it
-     * by family name. Safe to call multiple times — subsequent calls are no-ops
-     * because JavaFX caches loaded fonts.
-     */
-    public void loadFonts() {
-        Font.loadFont(
-                Objects.requireNonNull(
-                        getClass().getResourceAsStream("/fonts/Lemon-Days.otf"),
-                        "Font not found: " + "/fonts/Lemon-Days.otf"
-                ), 14
-        );
-
+    public void setMainStage(Stage stage) {
+        this.mainStage = stage;
     }
 
     /**
-     * Loads the given FXML file, wraps it in a {@link Scene} with the global
-     * stylesheet applied, and sets it on the primary stage.
+     * Loads application-specific custom fonts from the classpath.
+     */
+    public void loadFonts() {
+        URL fontUrl = Main.class.getResource("/fonts/Lemon-Days.otf");
+        if (fontUrl != null) {
+            Font.loadFont(fontUrl.toExternalForm(), 14);
+        }
+    }
+
+    /**
+     * Switches the current scene on the main stage to the specified FXML view.
      *
-     * @param <SceneController> the type of the FXML controller
-     * @param fxmlFile filename only (e.g. {@code "game-view.fxml"})
-     * @return the controller instance created by the {@link FXMLLoader}
-     * @throws IOException if the FXML file cannot be found or parsed
+     * @param fxmlFile The name of the FXML file to load (e.g., "menu-view.fxml").
+     * @param <SceneController> The expected controller type for the loaded FXML.
+     * @return The controller instance associated with the loaded FXML view.
+     * @throws IOException If the FXML file cannot be found or parsed.
      */
     public <SceneController> SceneController switchScene(String fxmlFile) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/" + fxmlFile));
+        URL fxmlUrl = Main.class.getResource("/fxml/" + fxmlFile);
+        if (fxmlUrl == null) {
+            fxmlUrl = Main.class.getResource("/" + fxmlFile);
+        }
+        if (fxmlUrl == null) {
+            throw new IOException("Resource not found: " + fxmlFile);
+        }
+
+        FXMLLoader loader = new FXMLLoader(fxmlUrl);
         Parent root = loader.load();
 
         Scene scene = new Scene(root);
-        scene.getStylesheets().add(
-                Objects.requireNonNull(getClass().getResource("/css/styles.css")).toExternalForm()
-        );
+        URL cssUrl = Main.class.getResource("/css/styles.css");
+        if (cssUrl != null) {
+            scene.getStylesheets().add(cssUrl.toExternalForm());
+        }
 
         mainStage.setScene(scene);
         mainStage.show();
-
         root.requestFocus();
 
         return loader.getController();
