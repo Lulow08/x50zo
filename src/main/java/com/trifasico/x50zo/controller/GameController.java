@@ -8,6 +8,7 @@ import com.trifasico.x50zo.model.listeners.GameEventAdapter;
 import com.trifasico.x50zo.model.listeners.IGameEventListener;
 import com.trifasico.x50zo.model.players.IPlayer;
 import com.trifasico.x50zo.view.GameView;
+import com.trifasico.x50zo.view.SceneManager;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -19,21 +20,14 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
- * JavaFX controller orchestrating core loop events, state timing delays, and keyboard maps.
- *
- * <p>Bridges user interaction streams to underlying data models. Implements strict state control
- * parameters to block race-conditions on sequential execution steps during elimination windows.</p>
- *
- * @author Yostin Ramirez
- * @author Lesly Zapata
- * @author Joseph Terreros
- * @version 1.2
+ * Controller class orchestrating core game loop events, state timing, and keyboard interactions.
+ * Bridges user interaction streams to underlying data models.
  */
 public class GameController {
 
@@ -45,8 +39,8 @@ public class GameController {
     @FXML private Label     humanNameLabel;
     @FXML private ImageView deckView;
     @FXML private Label     deckCountLabel;
-    @FXML private HBox      topMachineArea;    // Handles Machine 1 and 2
-    @FXML private VBox      rightMachineArea;  // Isolated container for Machine 3
+    @FXML private HBox      topMachineArea;
+    @FXML private VBox      rightMachineArea;
     @FXML private Label     centerMessageLabel;
 
     private TurnManager turnManager;
@@ -54,27 +48,54 @@ public class GameController {
     private int         hoveredIndex = -1;
     private boolean     humanTurn    = false;
     private boolean     processingElimination = false;
+    private int         machineCount = 1;
 
-    private static final int    MACHINE_COUNT = 3;
-    private static final String HUMAN_NAME    = "Player 1";
+    private static final String HUMAN_NAME = "Player 1";
 
+    /**
+     * Initializes the game controller and instantiates the view wrapper.
+     */
     @FXML
     public void initialize() {
         this.view = new GameView(turnPlayerLabel, tableSumLabel, statusLabel, humanNameLabel, deckCountLabel,
                 topCardView, deckView, humanHandBox, topMachineArea, rightMachineArea, centerMessageLabel);
-        startNewGame();
     }
 
+    /**
+     * Sets the number of machine opponents for the upcoming game instance.
+     *
+     * @param bots The amount of machine players to be generated.
+     */
+    public void setBotCount(int bots) {
+        this.machineCount = bots;
+    }
+
+    /**
+     * Terminates the application gracefully.
+     */
     @FXML
     public void onExitClicked() {
-        ((Stage) turnPlayerLabel.getScene().getWindow()).close();
+        Platform.exit();
+        System.exit(0);
     }
 
+    /**
+     * Redirects the user back to the main menu view.
+     */
     @FXML
     public void onHomeClicked() {
-        // TODO: Main menu navigation route
+        try {
+            SceneManager.getInstance().switchScene("menu-view.fxml");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
+    /**
+     * Captures and processes keyboard events to allow non-mouse gameplay during a human turn.
+     *
+     * @param event The keyboard event detected.
+     */
     @FXML
     public void onKeyPressed(KeyEvent event) {
         if (!humanTurn) return;
@@ -88,12 +109,15 @@ public class GameController {
         else if (code == KeyCode.ESCAPE) clearHover();
     }
 
-    private void startNewGame() {
+    /**
+     * Initializes the underlying logic models and starts a new instance of the game loop.
+     */
+    public void startNewGame() {
         hoveredIndex = -1;
         humanTurn    = false;
         processingElimination = false;
 
-        turnManager = new TurnManager(HUMAN_NAME, MACHINE_COUNT);
+        turnManager = new TurnManager(HUMAN_NAME, machineCount);
         turnManager.setEventListener(buildListener());
 
         try {
@@ -110,17 +134,30 @@ public class GameController {
         });
     }
 
+    /**
+     * Simulates mouse hovering through keyboard input.
+     *
+     * @param index The index of the card to target.
+     */
     private void applyKeyboardHover(int index) {
         List<Card> hand = turnManager.getHuman().getHand();
         if (index >= hand.size()) return;
         setHovered(index);
     }
 
+    /**
+     * Plays the currently hovered card based on the active index.
+     */
     private void playHovered() {
         if (hoveredIndex < 0) return;
         executePlay(hoveredIndex);
     }
 
+    /**
+     * Executes the logic to process a human turn given a specific card index.
+     *
+     * @param index The index of the card to be played from the hand.
+     */
     private void executePlay(int index) {
         if (!humanTurn) return;
         humanTurn = false;
@@ -139,6 +176,9 @@ public class GameController {
         hoveredIndex = -1;
     }
 
+    /**
+     * Initiates a background thread to process a machine opponent's move.
+     */
     private void launchMachineTurn() {
         setUiEnabled(false);
         new MachinePlayThread(turnManager, e ->
@@ -146,38 +186,63 @@ public class GameController {
         ).start();
     }
 
+    /**
+     * Sets the active hovered index and commands the view to display the appropriate effect.
+     *
+     * @param index The index of the targeted card.
+     */
     private void setHovered(int index) {
         clearHoverVisuals();
         hoveredIndex = index;
         view.setHoverEffect(index, true);
     }
 
+    /**
+     * Clears local hover tracking integers and removes hover effects from the view.
+     */
     private void clearHover() {
         clearHoverVisuals();
         hoveredIndex = -1;
     }
 
+    /**
+     * Triggers the view to clear any current hovering style modifications.
+     */
     private void clearHoverVisuals() {
         view.clearAllHoverEffects();
     }
 
+    /**
+     * Enables or disables interaction with the human hand box layout.
+     *
+     * @param enabled The boolean value dictating interactability.
+     */
     private void setUiEnabled(boolean enabled) {
         humanHandBox.setDisable(!enabled);
     }
 
+    /**
+     * Retrieves the current list of active machine opponents.
+     *
+     * @return A list containing active {@link IPlayer} instances excluding the human.
+     */
     private List<IPlayer> getMachinePlayers() {
         return turnManager.getActivePlayers().stream()
                 .filter(p -> !p.getName().equals(HUMAN_NAME))
                 .toList();
     }
 
+    /**
+     * Constructs and binds the adapter required to listen to logic model events.
+     *
+     * @return An implementation of {@link IGameEventListener}.
+     */
     private IGameEventListener buildListener() {
         return new GameEventAdapter() {
 
             @Override
             public void onTurnStarted(IPlayer player) {
                 if (processingElimination) {
-                    // Intercept and halt execution rhythm so elimination UI remains visible
                     processingElimination = false;
                     PauseTransition halt = new PauseTransition(Duration.seconds(2.0));
                     halt.setOnFinished(ev -> setupTurnState(player));
@@ -189,7 +254,7 @@ public class GameController {
 
             private void setupTurnState(IPlayer player) {
                 boolean isHuman = player.getName().equals(HUMAN_NAME);
-                view.setTurnStyleClass("turn-label-normal"); // Revert back to normal CSS classes
+                view.setTurnStyleClass("turn-label-normal");
                 view.updateTurn(isHuman ? "YOUR TURN" : player.getName().toUpperCase());
                 view.setStatus("");
                 clearHover();
@@ -200,8 +265,14 @@ public class GameController {
                         view.showCenterMessage("YOU LOSE", "#FF4444", false);
                         setUiEnabled(false);
 
-                        PauseTransition pause = new PauseTransition(Duration.seconds(2));
-                        pause.setOnFinished(ev -> turnManager.eliminateCurrentPlayer());
+                        PauseTransition pause = new PauseTransition(Duration.seconds(3.0));
+                        pause.setOnFinished(ev -> {
+                            try {
+                                SceneManager.getInstance().switchScene("menu-view.fxml");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
                         pause.play();
                     } else {
                         humanTurn = true;
@@ -227,8 +298,8 @@ public class GameController {
             public void onPlayerEliminated(IPlayer eliminated) {
                 processingElimination = true;
                 view.updateTurn(eliminated.getName().toUpperCase() + " ELIMINATED!");
-                view.setTurnStyleClass("turn-label-eliminated"); // Trigger custom layout look via CSS
-                view.renderMachineHands(getMachinePlayers());    // Remove their cards instantly
+                view.setTurnStyleClass("turn-label-eliminated");
+                view.renderMachineHands(getMachinePlayers());
             }
 
             @Override
@@ -247,7 +318,13 @@ public class GameController {
                 }
 
                 PauseTransition pause = new PauseTransition(Duration.seconds(3.5));
-                pause.setOnFinished(e -> ((Stage) turnPlayerLabel.getScene().getWindow()).close());
+                pause.setOnFinished(e -> {
+                    try {
+                        SceneManager.getInstance().switchScene("menu-view.fxml");
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                });
                 pause.play();
             }
 
@@ -259,6 +336,9 @@ public class GameController {
         };
     }
 
+    /**
+     * Executes the rendering process for all major components inside the view class.
+     */
     private void renderAll() {
         renderHumanHand();
         view.renderMachineHands(getMachinePlayers());
@@ -269,6 +349,9 @@ public class GameController {
         humanNameLabel.setText(HUMAN_NAME);
     }
 
+    /**
+     * Re-draws the human player hand and resets event handlers for visual slots.
+     */
     private void renderHumanHand() {
         view.renderHumanHand(turnManager.getHuman().getHand(),
                 index -> new CardHoverHandler(index, true, this),
@@ -277,6 +360,11 @@ public class GameController {
         );
     }
 
+    /**
+     * Checks if the human player currently has any valid play left based on the table sum.
+     *
+     * @return True if a valid play exists, otherwise false.
+     */
     private boolean hasValidPlays() {
         int currentSum = turnManager.getTableSum();
         for (Card card : turnManager.getHuman().getHand()) {
@@ -287,10 +375,8 @@ public class GameController {
         return false;
     }
 
-    // =========================================================================
-
     /**
-     * Inner event-handler tracking human interaction mechanics across individual rendering slots.
+     * Inner utility class serving as a mouse event handler for individual card slots.
      */
     static class CardHoverHandler implements javafx.event.EventHandler<MouseEvent> {
 
@@ -299,10 +385,25 @@ public class GameController {
         private final boolean        clicking;
         private final GameController controller;
 
+        /**
+         * Constructs a new handler dedicated to hover detection.
+         *
+         * @param index The zero-based index of the card slot in the hand.
+         * @param entering Whether this handles a mouse enter or mouse exit phase.
+         * @param controller The active GameController instance orchestrating logic.
+         */
         CardHoverHandler(int index, boolean entering, GameController controller) {
             this(index, entering, controller, false);
         }
 
+        /**
+         * Constructs a new handler supporting mouse clicks alongside hovering.
+         *
+         * @param index The zero-based index of the card slot in the hand.
+         * @param entering Whether this handles a mouse enter or mouse exit phase.
+         * @param controller The active GameController instance orchestrating logic.
+         * @param clicking Whether this execution involves a primary click.
+         */
         CardHoverHandler(int index, boolean entering, GameController controller, boolean clicking) {
             this.index      = index;
             this.entering   = entering;
