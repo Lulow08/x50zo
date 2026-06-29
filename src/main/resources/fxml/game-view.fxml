@@ -35,11 +35,11 @@
               style="-fx-padding: 0 0 0 16;">
 
             <HBox alignment="CENTER_LEFT" spacing="15">
-                <Button text="✕"
+                <Button text=""
                         styleClass="btn-exit"
                         onAction="#onExitClicked"/>
 
-                <Button text="⌂"
+                <Button text=""
                         styleClass="btn-home"
                         onAction="#onHomeClicked"/>
             </HBox>
