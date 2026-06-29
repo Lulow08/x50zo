@@ -1,0 +1,8 @@
+module:com.trifasico.x50zo
+com.trifasico.x50zo
+com.trifasico.x50zo.controller
+com.trifasico.x50zo.exceptions
+com.trifasico.x50zo.model
+com.trifasico.x50zo.model.listeners
+com.trifasico.x50zo.model.players
+com.trifasico.x50zo.view
