@@ -85,7 +85,7 @@
 =========================================================*/
 
 .btn-exit{
-
+    -fx-font-family: "JetBrainsMono NF";
     -fx-background-color:#F9A8C9;
     -fx-text-fill:#1A1A2E;
 
@@ -105,7 +105,7 @@
 }
 
 .btn-home{
-
+    -fx-font-family: "JetBrainsMono NF";
     -fx-background-color:#1A1A2E;
     -fx-text-fill:white;
 
@@ -181,6 +181,7 @@
 }
 
 .btn-menu-arrow {
+    -fx-font-family: "JetBrainsMono NF";
     -fx-background-color: black;
     -fx-text-fill: white;
     -fx-font-size: 24px;
@@ -201,6 +202,7 @@
 }
 
 .btn-menu-play {
+    -fx-font-family: "JetBrainsMono NF";
     -fx-background-color: #FF85B3;
     -fx-text-fill: black;
     -fx-font-size: 40px;
@@ -218,6 +220,7 @@
 }
 
 .btn-menu-exit {
+    -fx-font-family: "JetBrainsMono NF";
     -fx-background-color: black;
     -fx-text-fill: white;
     -fx-font-size: 36px;

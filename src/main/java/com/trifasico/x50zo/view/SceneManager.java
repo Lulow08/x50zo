@@ -48,10 +48,8 @@ public final class SceneManager {
      * Loads application-specific custom fonts from the classpath.
      */
     public void loadFonts() {
-        URL fontUrl = Main.class.getResource("/fonts/Lemon-Days.otf");
-        if (fontUrl != null) {
-            Font.loadFont(fontUrl.toExternalForm(), 14);
-        }
+        Font.loadFont(getClass().getResourceAsStream("/fonts/Lemon-Days.otf"), 14);
+        Font.loadFont(getClass().getResourceAsStream("/fonts/JetBrainsMonoNerdFont-Regular.ttf"), 14);
     }
 
     /**
